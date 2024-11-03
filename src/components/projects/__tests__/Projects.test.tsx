@@ -1,4 +1,10 @@
-import { render, screen, within, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  within,
+  act,
+  waitForElementToBeRemoved,
+} from "@testing-library/react";
 import React from "react";
 import userEvent from "@testing-library/user-event";
 import { Projects } from "../Projects";
@@ -334,6 +340,75 @@ describe("Projects", () => {
       expect(input.value).toBe("");
     });
   });
+
+  describe("leave", () => {
+    it("should have disconnect button and peer count", async () => {
+      renderProjects();
+      await addProjects(["Veresk"]);
+      await userEvent.click(screen.getByText("Share project"));
+
+      await screen.findByText("Peers: 0");
+      await screen.findByText("Disconnect");
+    });
+    it("should show connect button after disconnect", async () => {
+      renderProjects();
+      await addProjects(["Veresk"]);
+      await userEvent.click(screen.getByText("Share project"));
+      await userEvent.click(screen.getByText("Disconnect"));
+      await screen.findByText("Connect again");
+    });
+    it("should call swarm.leave on disconnect", async () => {
+      const swarm = new SwarmMock();
+      const topic = mockTopicHex("c");
+      renderProjects({ createSwarm: () => swarm, createTopic: () => topic });
+      await addProjects(["Veresk"]);
+      await userEvent.click(screen.getByText("Share project"));
+      await userEvent.click(screen.getByText("Disconnect"));
+      expect(swarm.leave).toHaveBeenCalledWith(topic);
+    });
+    it("should call swarm.join on reconnect", async () => {
+      const swarm = new SwarmMock();
+      const topic = mockTopicHex("d");
+      renderProjects({ createSwarm: () => swarm, createTopic: () => topic });
+      await addProjects(["Veresk"]);
+      await userEvent.click(screen.getByText("Share project"));
+      await userEvent.click(screen.getByText("Disconnect"));
+      await userEvent.click(screen.getByText("Connect again"));
+      expect(swarm.join).toHaveBeenNthCalledWith(2, topic);
+    });
+    it("should show peer count and disconnect button after reconnect", async () => {
+      const swarm = new SwarmMock();
+      const topic = mockTopicHex("d");
+      renderProjects({ createSwarm: () => swarm, createTopic: () => topic });
+      await addProjects(["Veresk"]);
+      await userEvent.click(screen.getByText("Share project"));
+      await userEvent.click(screen.getByText("Disconnect"));
+      await userEvent.click(screen.getByText("Connect again"));
+
+      await screen.findByText("Peers: 0");
+      await screen.findByText("Disconnect");
+    });
+    it("should show joining swarm message", async () => {
+      const swarm = new SwarmMock();
+
+      const topic = mockTopicHex("d");
+      renderProjects({ createSwarm: () => swarm, createTopic: () => topic });
+      await addProjects(["Veresk"]);
+      await userEvent.click(screen.getByText("Share project"));
+      await userEvent.click(screen.getByText("Disconnect"));
+
+      swarm.join.mockImplementation(
+        () => new Promise((resolve) => setTimeout(resolve, 5))
+      );
+      await userEvent.click(screen.getByText("Connect again"));
+      await screen.findByText("Joining swarm...");
+
+      await waitForElementToBeRemoved(() =>
+        screen.queryByText("Joining swarm...")
+      );
+    });
+  });
+
   describe("shared project", () => {
     afterEach(() => {
       jest.restoreAllMocks();
@@ -447,7 +522,12 @@ function getProjectMock(
   return { name, id, topic, owner };
 }
 
-function getTaskMock(text: string, id: string, projectId: string, owner = 'me'): Task {
+function getTaskMock(
+  text: string,
+  id: string,
+  projectId: string,
+  owner = "me"
+): Task {
   return { text, id, projectId, owner, completed: false };
 }
 

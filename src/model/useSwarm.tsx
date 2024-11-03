@@ -44,6 +44,8 @@ export interface SwarmModel {
   createTopic: CreateTopic;
   peerCounts: Record<string, number>;
   joinTopic: (topic: string) => Promise<void>;
+  leaveTopic: (topic: string) => Promise<void>;
+  reconnectTopic: (topic: string) => Promise<void>;
   isJoining: boolean;
   sendAll: (topic: string, data: SwarmMessage) => void;
   send: (topic: string, to: string, data: SwarmMessage) => void;
@@ -73,14 +75,41 @@ function useSwarmModel({
     setConnectedTopics((topics) => new Set([...topics, topic]));
   }
 
+  function removeConnectedTopic(topic: string) {
+    setConnectedTopics(
+      (topics) =>
+        new Set([...topics].filter((connectedTopic) => connectedTopic != topic))
+    );
+  }
+
   async function joinTopic(topic: string) {
-    if (!swarmsRef.current.get(topic)) {
-      addConnectedTopic(topic);
-      setIsJoining(true);
+    const existingSwarm = swarmsRef.current.get(topic);
+    if (!existingSwarm) {
       const swarm = createSwarm();
       swarmsRef.current.set(topic, swarm);
-      await swarm.join(topic);
-      setIsJoining(false);
+      await connect(swarm, topic);
+    }
+  }
+
+  async function reconnectTopic(topic: string) {
+    const existingSwarm = swarmsRef.current.get(topic);
+    if (existingSwarm) {
+      connect(existingSwarm, topic)
+    }
+  }
+
+  async function connect(swarm: SwarmI, topic:string) {
+    addConnectedTopic(topic);
+    setIsJoining(true);
+    await swarm.join(topic);
+    setIsJoining(false);
+  }
+
+  async function leaveTopic(topic: string) {
+    const swarm = swarmsRef.current.get(topic);
+    if (swarm) {
+      removeConnectedTopic(topic);
+      await swarm.leave(topic);
     }
   }
 
@@ -102,6 +131,8 @@ function useSwarmModel({
     createTopic,
     peerCounts,
     joinTopic,
+    leaveTopic,
+    reconnectTopic,
     isJoining,
     sendAll,
     send,

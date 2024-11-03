@@ -3,6 +3,7 @@ import { Task } from "./task-types";
 
 export interface Swarm {
   join: (topic: string) => Promise<void>;
+  leave: (topic: string) => Promise<void>;
   sendAll: (message: string) => void;
   send: (to: string, message: string) => void;
   onConnectionsUpdate: (cb: (connections: Set<Peer>) => void) => void;

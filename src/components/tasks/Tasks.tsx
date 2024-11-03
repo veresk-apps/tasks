@@ -9,7 +9,15 @@ import { useSwarmEffect } from "../../model/useSwarmEffect";
 
 export function Tasks() {
   const { currentProject, removeProject, setProjectTopic } = useProjects();
-  const { joinTopic, createTopic, peerCounts, isJoining } = useSwarm();
+  const {
+    joinTopic,
+    leaveTopic,
+    reconnectTopic,
+    createTopic,
+    peerCounts,
+    isJoining,
+    connectedTopics,
+  } = useSwarm();
   useSwarmEffect();
 
   return (
@@ -37,11 +45,19 @@ export function Tasks() {
             Share project
           </Button>
         )}
-        {currentProject?.topic && (
+        {currentProject.topic && <p>{currentProject.topic}</p>}
+        {currentProject.topic && connectedTopics.has(currentProject.topic) && (
           <>
-            <p>{currentProject.topic}</p>
             <p>Peers: {peerCounts[currentProject.topic] ?? 0}</p>
+            <Button onClick={() => leaveTopic(currentProject.topic!)}>
+              Disconnect
+            </Button>
           </>
+        )}
+        {currentProject.topic && !connectedTopics.has(currentProject.topic) && (
+          <Button onClick={() => reconnectTopic(currentProject.topic!)}>
+            Connect again
+          </Button>
         )}
         {isJoining && <p>Joining swarm...</p>}
       </>
