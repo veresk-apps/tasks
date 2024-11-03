@@ -9,7 +9,7 @@ import { useSwarmEffect } from "../../model/useSwarmEffect";
 
 export function Tasks() {
   const { currentProject, removeProject, setProjectTopic } = useProjects();
-  const { joinTopic, createTopic, peerCount, isJoining } = useSwarm();
+  const { joinTopic, createTopic, peerCounts, isJoining } = useSwarm();
   useSwarmEffect();
 
   return (
@@ -40,7 +40,7 @@ export function Tasks() {
         {currentProject?.topic && (
           <>
             <p>{currentProject.topic}</p>
-            <p>Peers: {peerCount}</p>
+            <p>Peers: {peerCounts[currentProject.topic] ?? 0}</p>
           </>
         )}
         {isJoining && <p>Joining swarm...</p>}

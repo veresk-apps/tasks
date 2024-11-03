@@ -42,12 +42,12 @@ export type SwarmMessage = {
 
 export interface SwarmModel {
   createTopic: CreateTopic;
-  peerCount: number;
+  peerCounts: Record<string, number>;
   joinTopic: (topic: string) => Promise<void>;
   isJoining: boolean;
   sendAll: (topic: string, data: SwarmMessage) => void;
   send: (topic: string, to: string, data: SwarmMessage) => void;
-  setPeerCount: (count: number) => void;
+  setPeerCount: (topic: string, count: number) => void;
   swarmsRef: MutableRefObject<Map<string, SwarmI>>;
   connectedTopics: Set<string>;
 }
@@ -61,20 +61,22 @@ function useSwarmModel({
   createSwarm,
   createTopic,
 }: UseSwarmModelProps): SwarmModel {
-  const [connectedTopics, setConnectedTopics] = useState<Set<string>>(new Set);
-  const [peerCount, setPeerCount] = useState(0);
+  const [connectedTopics, setConnectedTopics] = useState<Set<string>>(
+    new Set()
+  );
+  const [peerCounts, setPeerCounts] = useState<Record<string, number>>({});
   const [isJoining, setIsJoining] = useState(false);
 
   const swarmsRef = useRef<Map<string, SwarmI>>(new Map());
 
   function addConnectedTopic(topic: string) {
-    setConnectedTopics(topics => new Set([...topics, topic]))
+    setConnectedTopics((topics) => new Set([...topics, topic]));
   }
 
   async function joinTopic(topic: string) {
     if (!swarmsRef.current.get(topic)) {
       const swarm = createSwarm();
-      swarmsRef.current.set(topic, swarm)
+      swarmsRef.current.set(topic, swarm);
       setIsJoining(true);
       await swarm.join(topic);
       setIsJoining(false);
@@ -92,15 +94,19 @@ function useSwarmModel({
     swarm && swarm.send(to, JSON.stringify(data));
   }
 
+  function setPeerCount(topic: string, count: number) {
+    setPeerCounts((counts) => ({ ...counts, [topic]: count }));
+  }
+
   return {
     createTopic,
-    peerCount,
+    peerCounts,
     joinTopic,
     isJoining,
     sendAll,
     send,
     setPeerCount,
     swarmsRef,
-    connectedTopics
+    connectedTopics,
   };
 }

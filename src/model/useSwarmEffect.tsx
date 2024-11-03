@@ -41,7 +41,7 @@ export function useSwarmEffect() {
       regsRefs.current.add(topic);
 
       swarm.onConnectionsUpdate((connections) => {
-        setPeerCount(connections.size);
+        setPeerCount(topic, connections.size);
       });
 
       swarm.onPeerData((peer, data) => {
