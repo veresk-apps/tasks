@@ -5,7 +5,6 @@ import { useSwarmEffect } from "../../model/useSwarmEffect";
 
 export function ProjectTabs() {
   const { projects, currentProject, selectProject } = useProjects();
-  useSwarmEffect();
   return (
     <ul role="tablist" className="m-3">
       {projects.map((project, index) => (
