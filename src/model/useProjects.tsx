@@ -259,6 +259,7 @@ export function createNewProject(name: string): Project {
     name,
     id: randomStringOfNumbers(),
     topic: null,
+    owner: "me"
   };
 }
 

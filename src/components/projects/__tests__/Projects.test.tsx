@@ -354,58 +354,56 @@ describe("Projects", () => {
       expect(swarm.send).toHaveBeenCalledTimes(1);
     });
 
-    it('should mark project if it connected to a swarm', async () => {
+    it("should mark project if it connected to a swarm", async () => {
       const swarm = new SwarmMock();
       renderProjects({ createSwarm: () => swarm });
-      await addProjects(['Veresk'])
-      await userEvent.click(screen.getByText('Share project'));
-      hasClass(getProjectTab("Veresk"), "text-blue-600")
+      await addProjects(["Veresk"]);
+      await userEvent.click(screen.getByText("Share project"));
+      hasClass(getProjectTab("Veresk"), "text-blue-600");
     });
 
     it("should display shared project in the list", async () => {
       const swarm = new SwarmMock();
       renderProjects({ createSwarm: () => swarm });
-      const topic = mockTopicHex("a");
-      await joinTopic(topic);
-      const project = getProjectMock("Alian", "projid", topic);
 
-      act(() => {
-        swarm.simulatePeerData(
-          { pubKey: "abcdef" },
-          JSON.stringify({
-            type: "share-project",
-            payload: {
-              project,
-              tasks: [],
-            },
-          })
-        );
-      });
+      const project = getProjectMock("Alian", "projid", mockTopicHex("a"));
+      await addSharedProject(project, [], swarm);
+
       await findProjectTab("Alian");
     });
     it("should display tasks from shared project list", async () => {
       const swarm = new SwarmMock();
       renderProjects({ createSwarm: () => swarm });
-      const topic = mockTopicHex("a");
-      await joinTopic(topic);
-
-      const project = getProjectMock("Alian", "projid", topic);
+      const project = getProjectMock("Alian", "projid", mockTopicHex("a"));
       const tasks = [getTaskMock("alian task 1", "taskid", "projid")];
-
-      act(() => {
-        swarm.simulatePeerData(
-          { pubKey: "abcdef" },
-          JSON.stringify({
-            type: "share-project",
-            payload: {
-              project,
-              tasks,
-            },
-          })
-        );
-      });
+      await addSharedProject(project, tasks, swarm);
 
       await screen.findByText("alian task 1");
+    });
+
+    it("should display shared projects below own", async () => {
+      const swarm = new SwarmMock();
+      renderProjects({ createSwarm: () => swarm });
+
+      await addSharedProject(
+        getProjectMock("Alian 1", "1", mockTopicHex("a")),
+        [],
+        swarm
+      );
+
+      await addProjects(["Own 2", "Own 1"]);
+
+      await addSharedProject(
+        getProjectMock("Alian 2", "2", mockTopicHex("b")),
+        [],
+        swarm
+      );
+
+      const renderedTabs = [...screen.getByRole("tablist").children].map(
+        (child) => child.textContent
+      );
+
+      expect(renderedTabs).toEqual(["Own 1", "Own 2", "---", "Alian 1", "Alian 2"]);
     });
   });
 });
@@ -421,11 +419,33 @@ function findProjectTab(name: string) {
 function getProjectMock(
   name: string,
   id: string,
-  topic: null | string
+  topic: null | string,
+  owner: string = "me"
 ): Project {
-  return { name, id, topic };
+  return { name, id, topic, owner };
 }
 
 function getTaskMock(text: string, id: string, projectId: string): Task {
   return { text, id, projectId, completed: false };
+}
+
+async function addSharedProject(
+  project: Project,
+  tasks: Task[],
+  swarm: SwarmMock
+) {
+  await joinTopic(project.topic!);
+
+  act(() => {
+    swarm.simulatePeerData(
+      { pubKey: "abcdef" },
+      JSON.stringify({
+        type: "share-project",
+        payload: {
+          project,
+          tasks,
+        },
+      })
+    );
+  });
 }

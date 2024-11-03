@@ -48,7 +48,10 @@ export function useSwarmEffect() {
         const { type, payload }: PeerData = JSON.parse(data);
         switch (type) {
           case "share-project":
-            addSharedProject(payload.project, payload.tasks);
+            addSharedProject(
+              { ...payload.project, owner: "other" },
+              payload.tasks
+            );
             selectProject(payload.project);
             break;
           case "task-update":
