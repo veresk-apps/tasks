@@ -21,7 +21,12 @@ export function useSwarmEffect() {
   useEffect(() => {
     const topic = currentProject?.topic ?? "";
     const swarm = swarmsRef.current.get(topic);
-    if (topic && connectedTopics.has(topic) && swarm) {
+    if (
+      topic &&
+      connectedTopics.has(topic) &&
+      swarm &&
+      currentProject?.owner == "me"
+    ) {
       swarm.onPeerConnected((peer) => {
         send(topic, peer.pubKey, {
           type: "share-project",
@@ -29,7 +34,7 @@ export function useSwarmEffect() {
         });
       });
     }
-  }, [connectedTopics, currentProject]);
+  }, [connectedTopics, currentProject, tasks]);
 
   const regsRefs = useRef(new Set());
 
