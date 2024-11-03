@@ -1,5 +1,11 @@
 # Veresk Tasks
 
+## Run directly on Pear
+```
+pear run pear://uxb61feseq6nmgpfpzfj1k3jreeo13dkhfbutzmamg6iyh6511uo
+```
+
+
 ## Install
 
 ```
@@ -20,7 +26,11 @@ STORAGE=~/storage-1 npm run dev
 ```
 
 ## Release
-```
-pear run pear://z8j8djs6azk37xqyirdoucujzh5io3phemcp37e7tz41jeaprdxo
-```
 
+```
+npm i
+npm run build
+npm run install:prod
+pear stage veresk-tasks-<version>
+pear release veresk-tasks-<version>
+```

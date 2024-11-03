@@ -7,12 +7,27 @@
     "gui": {
       "height": 640,
       "width": 720
+    },
+    "stage": {
+      "ignore": [
+        ".git",
+        ".vscode",
+        ".DS_Store",
+        "src",
+        ".gitignore",
+        "babel.config.json",
+        "package-lock.json",
+        "README.md",
+        "tailwind.config.js",
+        "tsconfig.json",
+        "jest.config.json"
+      ]
     }
   },
   "type": "module",
   "license": "Apache-2.0",
   "scripts": {
-    "dev": "npm-run-all --parallel tsc:watch tailwind:watch pear-dev",
+    "dev": "npm-run-all --parallel tsc:watch tailwind:watch pear:dev",
     "dev:clean": "npm-run-all --sequential build dev",
     "build": "npm-run-all --sequential clean tsc tailwind",
     "clean": "rimraf dist",
@@ -20,9 +35,10 @@
     "tsc:watch": "npm run tsc -- --watch",
     "tailwind": "tailwindcss -i ./src/main.css -o ./dist/main.css",
     "tailwind:watch": "npm run tailwind -- --watch",
-    "pear-dev": "pear run -d .",
+    "pear:dev": "pear run -d .",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "install:prod": "npm install --omit=dev"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
