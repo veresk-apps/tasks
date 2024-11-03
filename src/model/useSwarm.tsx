@@ -26,10 +26,12 @@ export function SwarmModelProvider({
 }
 
 export type CreateTopic = () => string;
+
 export type SwarmMessage = {
   type: string,
   payload: Object
 }
+
 export interface SwarmModel {
   createTopic: CreateTopic;
   topic: string | null;
@@ -56,7 +58,6 @@ function useSwarmModel({
   const [peerCount, setPeerCount] = useState(0);
   const [messages, setMessages] = useState<Array<Message>>([]);
   const [isJoining, setIsJoining] = useState(false);
-
 
   function addMessage(text: string, from: string) {
     setMessages((messages) => [...messages, { text, from }]);

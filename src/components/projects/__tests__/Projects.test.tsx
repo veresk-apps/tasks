@@ -34,7 +34,7 @@ function renderProjects({
 describe("Projects", () => {
   it("should not create a project with empty name", async () => {
     renderProjects();
-    const projects = await screen.findByTestId("project-list");
+    const projects = await screen.findByRole("tablist");
     await userEvent.click(screen.getByText("New project"));
     await userEvent.click(screen.getByText("Create"));
 
@@ -71,7 +71,7 @@ describe("Projects", () => {
 
   it("should add one project to the list of projects", async () => {
     renderProjects();
-    const projects = screen.getByTestId("project-list");
+    const projects = await screen.findByRole("tablist");
 
     await addProjects(["Veresk"]);
     expect(projects.children).toHaveLength(1);
@@ -80,7 +80,7 @@ describe("Projects", () => {
 
   it("should add one project to the list of by clicking Create button", async () => {
     renderProjects();
-    const projects = screen.getByTestId("project-list");
+    const projects = await screen.findByRole("tablist");
 
     await userEvent.click(screen.getByText("New project"));
     await userEvent.type(screen.getByLabelText("Project name"), "Project 1");
@@ -91,7 +91,7 @@ describe("Projects", () => {
 
   it("should add two projects to the list of projects", async () => {
     renderProjects();
-    const projects = screen.getByTestId("project-list");
+    const projects = await screen.findByRole("tablist");
 
     await addProjects(["Veresk", "Candy"]);
     expect(projects.children).toHaveLength(2);
@@ -102,7 +102,7 @@ describe("Projects", () => {
   it("should select project by clicking", async () => {
     renderProjects();
     await addProjects(["Veresk", "Candy"]);
-    const projects = screen.getByTestId("project-list");
+    const projects = await screen.findByRole("tablist");
 
     expect(hasClass(within(projects).getByText("Candy"), "font-bold")).toBe(
       true
@@ -393,7 +393,7 @@ describe("Projects", () => {
       const swarm = new SwarmMock();
       renderProjects({ swarm });
 
-      const project = createNewProject("Alian");
+      const project = getProjectMock("Alian", "projid", "topic");
 
       act(() => {
         swarm.simulatePeerData(
@@ -407,7 +407,7 @@ describe("Projects", () => {
           })
         );
       });
-      await screen.findByText("Alian");
+      await findProjectTab("Alian")
     });
     it("should display tasks from shared project list", async () => {
       const swarm = new SwarmMock();
@@ -435,11 +435,11 @@ describe("Projects", () => {
 });
 
 function getProjectTab(name: string) {
-  return within(screen.getByTestId("project-list")).getByText(name);
+  return within(screen.getByRole("tablist")).getByText(name);
 }
 
 function findProjectTab(name: string) {
-  return within(screen.getByTestId("project-list")).findByText(name);
+  return within(screen.getByRole("tablist")).findByText(name);
 }
 
 function getProjectMock(

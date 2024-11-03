@@ -69,7 +69,6 @@ export function useSwarmEffect() {
           removeTask(payload, false);
           break;
         case "task-add":
-          console.log('receive task add', payload)
           addTask(payload, false);
           break;
         default:
@@ -86,7 +85,6 @@ export function useSwarmEffect() {
     });
 
     eventsRef.current.on("task-add", (task) => {
-      console.log("sending all on task-add", task);
       sendAll({ type: "task-add", payload: task });
     });
   }, []);

@@ -9,7 +9,7 @@ interface Props {
 }
 export function TaskCreator({ onDone = () => {}, task }: Props = {}) {
   const [draft, setDraft] = useState(task ? task.text : "");
-  const { addTask, editTask, currentProject, isSharedProjectActive } =
+  const { addTask, editTask, currentProject } =
     useProjects();
   const editMode = task != null;
 
