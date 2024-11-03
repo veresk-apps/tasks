@@ -5,7 +5,7 @@ import { Project } from "../types/project-types";
 import { PeerData } from "../types/swarm-types";
 
 export function useSwarmEffect() {
-  const { swarmsRef, setPeerCount, send, sendAll, topic, joinTopic } =
+  const { swarmsRef, setPeerCount, send, sendAll, connectedTopics, joinTopic } =
     useSwarm();
   const {
     currentProject,
@@ -19,18 +19,17 @@ export function useSwarmEffect() {
   } = useProjects();
 
   useEffect(() => {
-    if (topic && currentProject) {
-      const swarm = swarmsRef.current.get(topic);
-      
-      swarm &&
-        swarm.onPeerConnected((peer) => {
-          send(topic, peer.pubKey, {
-            type: "share-project",
-            payload: { project: currentProject, tasks },
-          });
+    const topic = currentProject?.topic ?? "";
+    const swarm = swarmsRef.current.get(topic);
+    if (topic && connectedTopics.has(topic) && swarm) {
+      swarm.onPeerConnected((peer) => {
+        send(topic, peer.pubKey, {
+          type: "share-project",
+          payload: { project: currentProject, tasks },
         });
+      });
     }
-  }, [topic, currentProject]);
+  }, [connectedTopics, currentProject]);
 
   const regsRefs = useRef(new Set());
 
@@ -73,7 +72,7 @@ export function useSwarmEffect() {
         }
       });
     }
-  }, [topic]);
+  }, [connectedTopics]);
 
   useEffect(() => {
     eventsRef.current.on("task-update", (project, task) => {
