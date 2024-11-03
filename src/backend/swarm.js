@@ -43,6 +43,11 @@ export class Swarm {
     await discovery.flushed();
   }
 
+  async leave(topic) {
+    const topicBuffer = topicToBuffer(topic);
+    return this.swarm.leave(topicBuffer);
+  }
+
   sendAll(message, predicate = () => true) {
     const data = b4a.from(message, "utf8");
     for (const peer of this.swarm.connections) {

@@ -48,7 +48,7 @@ describe("swarm", () => {
     const swarm = new Swarm({ Hyperswarm: HyperswarmMock, Pear });
     const swarmPeerConnectedCallback = jest.fn();
     swarm.onSwarmPeerConnected(swarmPeerConnectedCallback);
-    for (const pubKey of ['pubkey1', 'pubkey2']) {
+    for (const pubKey of ["pubkey1", "pubkey2"]) {
       const peer = new PeerMock(pubKey);
       swarm.swarm.simulateEvent("connection", peer);
       expect(swarmPeerConnectedCallback).toHaveBeenCalledWith(peer);
@@ -59,7 +59,7 @@ describe("swarm", () => {
     const swarm = new Swarm({ Hyperswarm: HyperswarmMock, Pear });
     const peerConnectedCallback = jest.fn();
     swarm.onPeerConnected(peerConnectedCallback);
-    for (const pubKey of ['pubkey1', 'pubkey2']) {
+    for (const pubKey of ["pubkey1", "pubkey2"]) {
       const peer = new PeerMock(pubKey);
       swarm.swarm.simulateEvent("connection", peer);
       expect(peerConnectedCallback).toHaveBeenCalledWith(peer.out());
@@ -125,13 +125,20 @@ describe("swarm", () => {
     expect(peer1.write).toHaveBeenCalledWith(buffer);
     expect(peer2.write).toHaveBeenCalledWith(buffer);
   });
-  it('should send data to one', () => {
+  it("should send data to one", () => {
     const swarm = new Swarm({ Hyperswarm: HyperswarmMock, Pear });
     const peer = new PeerMock("pubkey1");
     swarm.swarm.simulateEvent("connection", peer);
     const buffer = b4a.from("some data", "utf8");
     swarm.send("pubkey1", "some data");
     expect(peer.write).toHaveBeenCalledWith(buffer);
+  });
+  it('should be able to leave the swarm', async () => {
+    const swarm = new Swarm({ Hyperswarm: HyperswarmMock, Pear });
+    const topic = mockTopicHex('a');
+    const buffer = b4a.from(topic, "hex");
+    await swarm.leave(topic);
+    expect(swarm.swarm.leave).toHaveBeenCalledWith(buffer);
   })
 });
 
@@ -146,6 +153,7 @@ class HyperswarmMock {
   join = jest.fn(() => ({
     flushed: this.flushed,
   }));
+  leave = jest.fn();
 
   on(event, cb) {
     this.eventCallbacks[event] = cb;
