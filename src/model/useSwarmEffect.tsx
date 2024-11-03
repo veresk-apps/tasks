@@ -6,7 +6,7 @@ import { PeerData } from "../types/swarm-types";
 
 
 export function useSwarmEffect() {
-  const { swarm, setPeerCount, send, sendAll, topic, joinTopic } = useSwarm();
+  const { swarmRef, setPeerCount, send, sendAll, topic, joinTopic } = useSwarm();
   const {
     currentProject,
     tasks,
@@ -19,7 +19,7 @@ export function useSwarmEffect() {
   } = useProjects();
 
   useEffect(() => {
-    swarm.onPeerConnected((peer) => {
+    swarmRef.current.onPeerConnected((peer) => {
       if (currentProject && topic && currentProject.topic == topic) {
         send(peer.pubKey, {
           type: "share-project",
@@ -30,11 +30,11 @@ export function useSwarmEffect() {
   }, [currentProject, topic]);
 
   useEffect(() => {
-    swarm.onConnectionsUpdate((connections) => {
+    swarmRef.current.onConnectionsUpdate((connections) => {
       setPeerCount(connections.size);
     });
 
-    swarm.onPeerData((peer, data) => {
+    swarmRef.current.onPeerData((peer, data) => {
       const { type, payload }: PeerData = JSON.parse(data);
 
       switch (type) {

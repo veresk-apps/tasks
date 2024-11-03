@@ -1,7 +1,9 @@
 import React, {
   createContext,
+  MutableRefObject,
   PropsWithChildren,
   useContext,
+  useRef,
   useState,
 } from "react";
 import { Swarm as SwarmI } from "../types/swarm-types";
@@ -15,21 +17,28 @@ export function useSwarm() {
   } else return model;
 }
 
+type SwamrModelProviderProps = PropsWithChildren<{
+  createTopic: CreateTopic;
+  createSwarm: CreateSwarm;
+}>;
+
 export function SwarmModelProvider({
   children,
-  swarm,
   createTopic,
-}: PropsWithChildren<{ swarm: SwarmI; createTopic: CreateTopic }>) {
-  const model = useSwarmModel({ swarm, createTopic });
+  createSwarm,
+}: SwamrModelProviderProps) {
+  const model = useSwarmModel({ createSwarm, createTopic });
   return <SwarmModelContext.Provider value={model} children={children} />;
 }
 
 export type CreateTopic = () => string;
 
+export type CreateSwarm = () => SwarmI;
+
 export type SwarmMessage = {
-  type: string,
-  payload: Object
-}
+  type: string;
+  payload: Object;
+};
 
 export interface SwarmModel {
   createTopic: CreateTopic;
@@ -41,33 +50,36 @@ export interface SwarmModel {
   sendAll: (data: SwarmMessage) => void;
   send: (to: string, data: SwarmMessage) => void;
   setPeerCount: (count: number) => void;
-  swarm: SwarmI;
+  swarmRef: MutableRefObject<SwarmI>;
+}
+
+interface UseSwarmModelProps {
+  createSwarm: CreateSwarm;
+  createTopic: CreateTopic;
 }
 
 function useSwarmModel({
-  swarm,
+  createSwarm,
   createTopic,
-}: {
-  swarm: SwarmI;
-  createTopic: CreateTopic;
-}): SwarmModel {
+}: UseSwarmModelProps): SwarmModel {
   const [topic, setTopic] = useState<string | null>(null);
   const [peerCount, setPeerCount] = useState(0);
   const [isJoining, setIsJoining] = useState(false);
+  const swarmRef = useRef(createSwarm());
 
   async function joinTopic(topic: string) {
     setIsJoining(true);
-    await swarm.join(topic);
+    await swarmRef.current.join(topic);
     setIsJoining(false);
     setTopic(topic);
   }
 
   function sendAll(data: SwarmMessage) {
-    swarm.sendAll(JSON.stringify(data));
+    swarmRef.current.sendAll(JSON.stringify(data));
   }
 
   function send(to: string, data: SwarmMessage) {
-    swarm.send(to, JSON.stringify(data))
+    swarmRef.current.send(to, JSON.stringify(data));
   }
 
   return {
@@ -80,6 +92,6 @@ function useSwarmModel({
     sendAll,
     send,
     setPeerCount,
-    swarm,
+    swarmRef,
   };
 }

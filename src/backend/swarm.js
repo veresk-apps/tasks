@@ -61,6 +61,10 @@ export function createTopic() {
   return crypto.randomBytes(32).toString("hex");
 }
 
+export function createSwarm() {
+  return new Swarm();
+}
+
 function topicToBuffer(topicString) {
   if (!isValidTopic(topicString)) {
     throw Error("invalid hex length, resulting buffer should be size of 32");

@@ -1,13 +1,12 @@
 import React from "react";
 import { Projects } from "../projects/Projects";
 import { Persist } from "../../utils/persist";
-import { Chat } from "../chat/Chat";
-import { createTopic, Swarm } from "../../backend/swarm";
+import { createTopic, createSwarm } from "../../backend/swarm";
 
 const persist = new Persist();
 
 export function App() {
   return (
-    <Projects persist={persist} createTopic={createTopic} swarm={new Swarm()} />
+    <Projects persist={persist} createTopic={createTopic} createSwarm={createSwarm} />
   );
 }

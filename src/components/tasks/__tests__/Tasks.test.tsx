@@ -21,7 +21,7 @@ async function renderTasksAndSetup({
   render(
     <Projects
       persist={new PersistMock()}
-      swarm={swarm}
+      createSwarm={() => swarm}
       createTopic={createTopic}
     />
   );

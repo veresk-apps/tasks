@@ -20,14 +20,19 @@ import { Task } from "../../../types/task-types";
 function renderProjects({
   persist = new PersistMock(),
   createTopic = originalCreateTopic,
-  swarm = new SwarmMock(),
+  createSwarm = () => new SwarmMock(),
 }: {
   persist?: Persist;
   createTopic?: CreateTopic;
   swarm?: Swarm;
+  createSwarm?: () => Swarm;
 } = {}) {
   render(
-    <Projects persist={persist} swarm={swarm} createTopic={createTopic} />
+    <Projects
+      persist={persist}
+      createSwarm={createSwarm}
+      createTopic={createTopic}
+    />
   );
 }
 
@@ -267,7 +272,7 @@ describe("Projects", () => {
         projects: JSON.stringify([project]),
       });
       const swarm = new SwarmMock();
-      renderProjects({ persist, swarm });
+      renderProjects({ persist, createSwarm: () => swarm });
       await screen.findByText(topic);
       expect(swarm.join).toHaveBeenCalled();
     });
@@ -294,7 +299,7 @@ describe("Projects", () => {
     });
     it("should join swarm on submit", async () => {
       const swarm = new SwarmMock();
-      renderProjects({ swarm });
+      renderProjects({ createSwarm: () => swarm });
       await userEvent.click(screen.getByText("Join project"));
       const topic = "a".repeat(64);
       await userEvent.keyboard(`${topic}{Enter}`);
@@ -322,7 +327,7 @@ describe("Projects", () => {
     it("should send project and tasks to a connected peer", async () => {
       const swarm = new SwarmMock();
       const topic = "topic";
-      renderProjects({ swarm, createTopic: () => topic });
+      renderProjects({ createSwarm: () => swarm, createTopic: () => topic });
 
       jest.spyOn(global.Math, "random").mockReturnValue(0.1);
       await addProjects(["Veresk"]);
@@ -352,7 +357,7 @@ describe("Projects", () => {
 
     it("should display shared project in the list", async () => {
       const swarm = new SwarmMock();
-      renderProjects({ swarm });
+      renderProjects({ createSwarm: () => swarm });
 
       const project = getProjectMock("Alian", "projid", "topic");
 
@@ -372,7 +377,7 @@ describe("Projects", () => {
     });
     it("should display tasks from shared project list", async () => {
       const swarm = new SwarmMock();
-      renderProjects({ swarm });
+      renderProjects({ createSwarm: () => swarm });
 
       const project = getProjectMock("Alian", "projid", "topic");
       const tasks = [getTaskMock("alian task 1", "taskid", "projid")];
