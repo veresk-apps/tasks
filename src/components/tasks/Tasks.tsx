@@ -37,7 +37,7 @@ export function Tasks() {
             Share project
           </Button>
         )}
-        {topic && (
+        {topic && topic == currentProject?.topic && (
           <>
             <p>{topic}</p>
             <p>Peers: {peerCount}</p>

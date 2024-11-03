@@ -1,7 +1,6 @@
 import React from "react";
 import { useProjects } from "../../model/useProjects";
 import clsx from "clsx";
-import { useSwarmEffect } from "../../model/useSwarmEffect";
 
 export function ProjectTabs() {
   const { projects, currentProject, selectProject } = useProjects();
