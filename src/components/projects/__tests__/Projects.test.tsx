@@ -240,7 +240,7 @@ describe("Projects", () => {
       renderProjects({ persist, createSwarm: () => swarm });
 
       const project = getProjectMock("Alian", "projid", mockTopicHex("a"));
-      const tasks = [getTaskMock("alian task 1", "taskid", "projid")];
+      const tasks = [getTaskMock("alian task 1", "taskid", "projid", "other")];
       await addSharedProject(project, tasks, swarm);
       await addTasks(["my ephemeral task"]);
 
@@ -447,8 +447,8 @@ function getProjectMock(
   return { name, id, topic, owner };
 }
 
-function getTaskMock(text: string, id: string, projectId: string): Task {
-  return { text, id, projectId, completed: false };
+function getTaskMock(text: string, id: string, projectId: string, owner = 'me'): Task {
+  return { text, id, projectId, owner, completed: false };
 }
 
 async function addSharedProject(
