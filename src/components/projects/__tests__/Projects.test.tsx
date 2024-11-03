@@ -354,6 +354,14 @@ describe("Projects", () => {
       expect(swarm.send).toHaveBeenCalledTimes(1);
     });
 
+    it('should mark project if it connected to a swarm', async () => {
+      const swarm = new SwarmMock();
+      renderProjects({ createSwarm: () => swarm });
+      await addProjects(['Veresk'])
+      await userEvent.click(screen.getByText('Share project'));
+      hasClass(getProjectTab("Veresk"), "text-blue-600")
+    });
+
     it("should display shared project in the list", async () => {
       const swarm = new SwarmMock();
       renderProjects({ createSwarm: () => swarm });
