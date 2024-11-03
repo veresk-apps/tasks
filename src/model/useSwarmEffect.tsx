@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSwarm } from "./useSwarm";
 import { useProjects } from "./useProjects";
 import { Project } from "../types/project-types";
@@ -19,28 +19,34 @@ export function useSwarmEffect() {
   } = useProjects();
 
   useEffect(() => {
-    const swarm = topic && swarmsRef.current[topic];
-    swarm &&
-      swarm.onPeerConnected((peer) => {
-        if (currentProject && topic && currentProject.topic == topic) {
-          send(currentProject.topic, peer.pubKey, {
+    if (topic && currentProject) {
+      const swarm = swarmsRef.current.get(topic);
+      
+      swarm &&
+        swarm.onPeerConnected((peer) => {
+          send(topic, peer.pubKey, {
             type: "share-project",
             payload: { project: currentProject, tasks },
           });
-        }
-      });
-  }, [currentProject, topic]);
+        });
+    }
+  }, [topic, currentProject]);
+
+  const regsRefs = useRef(new Set());
 
   useEffect(() => {
-    const swarm = topic && swarmsRef.current[topic];
-    if (swarm) {
+    const unregisteredTopicSwarmPairs = [...swarmsRef.current.entries()].filter(
+      ([topic]) => !regsRefs.current.has(topic)
+    );
+    for (const [topic, swarm] of unregisteredTopicSwarmPairs) {
+      regsRefs.current.add(topic);
+
       swarm.onConnectionsUpdate((connections) => {
         setPeerCount(connections.size);
       });
 
       swarm.onPeerData((peer, data) => {
         const { type, payload }: PeerData = JSON.parse(data);
-
         switch (type) {
           case "share-project":
             addSharedProject(payload.project, payload.tasks);

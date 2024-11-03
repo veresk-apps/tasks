@@ -259,10 +259,9 @@ describe("Tasks", () => {
     it("should send remove event", async () => {
       const swarm = new SwarmMock();
       await renderTasksAndSetup({ swarm });
-      const topic = mockTopicHex("a");
-      await joinTopic(topic);
+      await joinTopic(mockTopicHex("a"));
 
-      const project = getProjectMock("Alian", "projid", topic);
+      const project = getProjectMock("Alian", "projid", mockTopicHex("b"));
       const tasks = [getTaskMock("alian task 1", "taskid", "projid")];
       addSharedProject(swarm, project, tasks);
 
