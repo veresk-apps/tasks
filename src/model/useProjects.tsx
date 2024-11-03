@@ -146,8 +146,14 @@ function useProjectsModel({ persist }: { persist: Persist }): ProjectsModel {
   }
 
   function addSharedProject(project: Project, tasks: Task[]) {
-    setProjectsPersist((projects) => [...projects, project]);
-    setTasks((tasksBefore) => [...tasksBefore, ...tasks]);
+    setProjectsPersist((projects) => [
+      ...intersectionLeftById(projects, [project]),
+      project,
+    ]);
+    setTasksPersist((tasksBefore) => [
+      ...intersectionLeftById(tasksBefore, tasks),
+      ...tasks,
+    ]);
   }
 
   return {
@@ -230,4 +236,14 @@ export function createNewProject(name: string): Project {
     id: randomStringOfNumbers(),
     topic: null,
   };
+}
+
+type IdTrait = { id: string };
+function intersectionLeftById<A extends IdTrait, B extends IdTrait>(
+  itemsA: Array<A>,
+  itemsB: Array<B>
+) {
+  return itemsA.filter(
+    (itemA) => !itemsB.find((itemB) => itemA.id == itemB.id)
+  );
 }
