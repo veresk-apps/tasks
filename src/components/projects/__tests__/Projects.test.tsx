@@ -184,56 +184,6 @@ describe("Projects", () => {
     expect(screen.queryAllByText("Veresk")).toHaveLength(0);
   });
 
-  describe("init chat", () => {
-    it("should init swarm topic as null in project", async () => {
-      const persist = new PersistMock();
-      renderProjects({ persist });
-      await addProjects(["Veresk"]);
-      const persistedProject = JSON.parse(await persist.get("projects"))[0];
-      expect(persistedProject.topic).toBeNull();
-    });
-
-    it("should assign swarm topic to a project", async () => {
-      const topic = "topic";
-      const persist = new PersistMock();
-      renderProjects({ persist, createTopic: () => topic });
-      await addProjects(["Veresk"]);
-      await userEvent.click(screen.getByText("Start Chat"));
-      const persistedProject = JSON.parse(await persist.get("projects"))[0];
-      expect(persistedProject.topic).toBe(topic);
-    });
-
-    it("should have 'Join project chat' button is project have savedTopic", async () => {
-      const project = { ...createNewProject("Veresk"), topic: "topic" };
-      const persist = new PersistMock({
-        projects: JSON.stringify([project]),
-      });
-      renderProjects({ persist });
-
-      await findProjectTab("Veresk");
-      screen.getByText("Join project chat");
-    });
-
-    it("should show chat only for projects that connected to the swarm", async () => {
-      const topic = "a".repeat(64);
-      const projects = [
-        { ...createNewProject("Veresk"), topic },
-        createNewProject("Candy"),
-      ];
-      const persist = new PersistMock({
-        projects: JSON.stringify(projects),
-      });
-      renderProjects({ persist });
-
-      await findProjectTab("Veresk");
-      await userEvent.click(screen.getByText("Join project chat"));
-      screen.getByText(topic);
-
-      userEvent.click(getProjectTab("Candy"));
-      await screen.findByText("Start Chat");
-    });
-  });
-
   describe("persistance", () => {
     it("should init state from the persistence store", async () => {
       const project = createNewProject("Veresk");

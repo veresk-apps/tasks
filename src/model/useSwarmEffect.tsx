@@ -5,7 +5,7 @@ import { Project } from "../types/project-types";
 import { Task } from "../types/task-types";
 
 export function useSwarmEffect() {
-  const { swarm, addMessage, setPeerCount, send, sendAll, topic } = useSwarm();
+  const { swarm, setPeerCount, send, sendAll, topic } = useSwarm();
   const {
     currentProject,
     tasks,
@@ -38,7 +38,6 @@ export function useSwarmEffect() {
         type,
         payload,
       }:
-        | { type: "chat-message"; payload: string }
         | {
             type: "share-project";
             payload: { project: Project; tasks: Task[] };
@@ -48,9 +47,6 @@ export function useSwarmEffect() {
         | { type: "task-add"; payload: Task } = JSON.parse(data);
 
       switch (type) {
-        case "chat-message":
-          addMessage(payload, peer.pubKey.slice(0, 4));
-          break;
         case "share-project":
           addSharedProject(payload.project, payload.tasks);
           setCurrentProjectId(payload.project.id);

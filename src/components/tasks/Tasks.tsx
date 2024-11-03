@@ -4,7 +4,6 @@ import { useProjects } from "../../model/useProjects";
 import { TaskCreator } from "./TaskCreator";
 import { TasksTitle } from "./TasksTitle";
 import { Button } from "../common/Button";
-import { Chat } from "../chat/Chat";
 import { useSwarm } from "../../model/useSwarm";
 import { useSwarmEffect } from "../../model/useSwarmEffect";
 
@@ -46,11 +45,6 @@ export function Tasks() {
         ) : (
           <p>{currentProject.topic}</p>
         )}
-
-        <Chat
-          onTopicCreated={(topic) => setProjectTopic(currentProject.id, topic)}
-          savedTopic={currentProject.topic}
-        />
       </>
     )
   );
