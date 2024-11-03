@@ -75,12 +75,12 @@ function useSwarmModel({
 
   async function joinTopic(topic: string) {
     if (!swarmsRef.current.get(topic)) {
+      addConnectedTopic(topic);
+      setIsJoining(true);
       const swarm = createSwarm();
       swarmsRef.current.set(topic, swarm);
-      setIsJoining(true);
       await swarm.join(topic);
       setIsJoining(false);
-      addConnectedTopic(topic);
     }
   }
 
