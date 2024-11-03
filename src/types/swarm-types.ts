@@ -1,3 +1,6 @@
+import { Project } from "./project-types";
+import { Task } from "./task-types";
+
 export interface Swarm {
   join: (topic: string) => Promise<void>;
   sendAll: (message: string) => void;
@@ -15,3 +18,12 @@ export interface PeerHyperswarm {
 export interface Peer {
   pubKey: string;
 }
+
+export type PeerData =
+  | {
+      type: "share-project";
+      payload: { project: Project; tasks: Task[] };
+    }
+  | { type: "task-update"; payload: Task }
+  | { type: "task-delete"; payload: string }
+  | { type: "task-add"; payload: Task };

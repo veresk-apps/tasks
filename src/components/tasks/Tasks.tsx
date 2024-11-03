@@ -8,13 +8,8 @@ import { useSwarm } from "../../model/useSwarm";
 import { useSwarmEffect } from "../../model/useSwarmEffect";
 
 export function Tasks() {
-  const {
-    currentProject,
-    setCurrentProjectId,
-    removeProject,
-    setProjectTopic
-  } = useProjects();
-  const { joinTopic, createTopic } = useSwarm();
+  const { currentProject, removeProject, setProjectTopic } = useProjects();
+  const { joinTopic, createTopic, peerCount, topic, isJoining } = useSwarm();
   useSwarmEffect();
 
   return (
@@ -27,12 +22,11 @@ export function Tasks() {
           className="text-sm"
           onClick={() => {
             removeProject(currentProject.id);
-            setCurrentProjectId(null);
           }}
         >
           Delete project
         </Button>
-        {!currentProject.topic ? (
+        {!currentProject.topic && (
           <Button
             onClick={async () => {
               const topic = createTopic();
@@ -42,9 +36,14 @@ export function Tasks() {
           >
             Share project
           </Button>
-        ) : (
-          <p>{currentProject.topic}</p>
         )}
+        {topic && (
+          <>
+            <p>{topic}</p>
+            <p>Peers: {peerCount}</p>
+          </>
+        )}
+        {isJoining && <p>Joining swarm...</p>}
       </>
     )
   );

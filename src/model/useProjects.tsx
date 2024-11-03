@@ -44,18 +44,18 @@ export interface ProjectsModel {
   projects: Array<Project>;
   currentProject: Project | null;
   addNewProject: (name: string) => void;
-  setCurrentProjectId: (projectId: string | null) => void;
   removeProject: (projectId: string) => void;
   setProjectTopic: (projectId: string, topic: string) => void;
   addSharedProject: (project: Project, task: Task[]) => void;
   eventsRef: MutableRefObject<EventEmitter>;
   updateTask: (taskId: string, updater: TaskUpdater, emit?: boolean) => void;
+  selectProject: (project: Project) => void;
 }
 
 function useProjectsModel({ persist }: { persist: Persist }): ProjectsModel {
   const [tasks, setTasks] = useState<Array<Task>>([]);
   const [projects, setProjects] = useState<Array<Project>>([]);
-  const [currentProjectId, setCurrentProjectId] = useState<string | null>("");
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
 
   const currentProject =
     projects.find((propject) => propject.id === currentProjectId) ?? null;
@@ -67,7 +67,10 @@ function useProjectsModel({ persist }: { persist: Persist }): ProjectsModel {
     setProjects,
     setTasks,
     onStateLoaded({ projects }) {
-      setCurrentProjectId(projects[0]?.id ?? null);
+      if (projects[0]) {
+        eventsRef.current.emit("project-selected", projects[0]);
+        setCurrentProjectId(projects[0].id);
+      }
     },
   });
 
@@ -118,6 +121,7 @@ function useProjectsModel({ persist }: { persist: Persist }): ProjectsModel {
     const project = createNewProject(projectName);
     addProject(project);
     setCurrentProjectId(project.id);
+    eventsRef.current.emit('project-selected', project)
   }
 
   function addProject(project: Project) {
@@ -128,6 +132,7 @@ function useProjectsModel({ persist }: { persist: Persist }): ProjectsModel {
     setProjectsPersist((projects) =>
       projects.filter((project) => project.id != projectId)
     );
+    setCurrentProjectId(null);
   }
 
   function updateProject(
@@ -156,6 +161,11 @@ function useProjectsModel({ persist }: { persist: Persist }): ProjectsModel {
     ]);
   }
 
+  function selectProject(project: Project) {
+    setCurrentProjectId(project.id);
+    eventsRef.current.emit('project-selected', project);
+  }
+
   return {
     tasks: tasks.filter((task) => task.projectId == currentProject?.id),
     addTask,
@@ -166,11 +176,11 @@ function useProjectsModel({ persist }: { persist: Persist }): ProjectsModel {
     currentProject,
     addNewProject,
     addSharedProject,
-    setCurrentProjectId,
     removeProject,
     setProjectTopic,
     eventsRef,
     updateTask,
+    selectProject
   };
 }
 

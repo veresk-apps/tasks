@@ -260,6 +260,17 @@ describe("Projects", () => {
       renderProjects({ persist });
       await screen.findByText(topic);
     });
+    it("should join topic automatically if the project is already shared", async () => {
+      const topic = "a".repeat(64);
+      const project = { ...createNewProject("Veresk"), topic };
+      const persist = new PersistMock({
+        projects: JSON.stringify([project]),
+      });
+      const swarm = new SwarmMock();
+      renderProjects({ persist, swarm });
+      await screen.findByText(topic);
+      expect(swarm.join).toHaveBeenCalled();
+    });
     it("should assign swarm topic to a project", async () => {
       const topic = "a".repeat(64);
       const persist = new PersistMock();
@@ -357,7 +368,7 @@ describe("Projects", () => {
           })
         );
       });
-      await findProjectTab("Alian")
+      await findProjectTab("Alian");
     });
     it("should display tasks from shared project list", async () => {
       const swarm = new SwarmMock();

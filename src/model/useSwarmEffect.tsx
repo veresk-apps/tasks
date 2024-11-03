@@ -2,15 +2,16 @@ import { useEffect } from "react";
 import { useSwarm } from "./useSwarm";
 import { useProjects } from "./useProjects";
 import { Project } from "../types/project-types";
-import { Task } from "../types/task-types";
+import { PeerData } from "../types/swarm-types";
+
 
 export function useSwarmEffect() {
-  const { swarm, setPeerCount, send, sendAll, topic } = useSwarm();
+  const { swarm, setPeerCount, send, sendAll, topic, joinTopic } = useSwarm();
   const {
     currentProject,
     tasks,
     addSharedProject,
-    setCurrentProjectId,
+    selectProject,
     eventsRef,
     updateTask,
     removeTask,
@@ -34,22 +35,12 @@ export function useSwarmEffect() {
     });
 
     swarm.onPeerData((peer, data) => {
-      const {
-        type,
-        payload,
-      }:
-        | {
-            type: "share-project";
-            payload: { project: Project; tasks: Task[] };
-          }
-        | { type: "task-update"; payload: Task }
-        | { type: "task-delete"; payload: string }
-        | { type: "task-add"; payload: Task } = JSON.parse(data);
+      const { type, payload }: PeerData = JSON.parse(data);
 
       switch (type) {
         case "share-project":
           addSharedProject(payload.project, payload.tasks);
-          setCurrentProjectId(payload.project.id);
+          selectProject(payload.project);
           break;
         case "task-update":
           updateTask(
@@ -83,5 +74,11 @@ export function useSwarmEffect() {
     eventsRef.current.on("task-add", (task) => {
       sendAll({ type: "task-add", payload: task });
     });
+
+    eventsRef.current.on("project-selected", async (project: Project) => {
+      if (project.topic) {
+        await joinTopic(project.topic);
+      }
+    })
   }, []);
 }
