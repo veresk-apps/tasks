@@ -1,3 +1,4 @@
+import { mockTopicHex } from "../../utils/testing";
 import { Swarm, createTopic } from "../swarm";
 import b4a from "b4a";
 
@@ -105,8 +106,8 @@ describe("swarm", () => {
   });
   it("should join swarm if valid topic is provided", () => {
     const swarm = new Swarm({ Hyperswarm: HyperswarmMock, Pear });
-    const topic = "f".repeat(64);
-    swarm.join("f".repeat(64));
+    const topic = mockTopicHex("f");
+    swarm.join(topic);
     expect(swarm.swarm.join).toHaveBeenCalledWith(b4a.from(topic, "hex"), {
       client: true,
       server: true,

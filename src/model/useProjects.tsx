@@ -2,8 +2,10 @@ import React, {
   createContext,
   MutableRefObject,
   PropsWithChildren,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -57,8 +59,10 @@ function useProjectsModel({ persist }: { persist: Persist }): ProjectsModel {
   const [projects, setProjects] = useState<Array<Project>>([]);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
 
-  const currentProject =
-    projects.find((propject) => propject.id === currentProjectId) ?? null;
+  const currentProject = useMemo(
+    () => projects.find((propject) => propject.id === currentProjectId) ?? null,
+    [projects, currentProjectId]
+  );
 
   const eventsRef = useRef(new EventEmitter());
 
@@ -74,54 +78,64 @@ function useProjectsModel({ persist }: { persist: Persist }): ProjectsModel {
     },
   });
 
-  function addTask(
-    { text, projectId, id }: { text: string; projectId: string; id?: string },
-    emit = true
-  ) {
-    const task = createNewTask(text, projectId, id);
-    setTasksPersist((tasks) => [...tasks, task]);
-    emit && eventsRef.current.emit("task-add", task);
-  }
+  const addTask = useCallback(
+    (
+      { text, projectId, id }: { text: string; projectId: string; id?: string },
+      emit = true
+    ) => {
+      const task = createNewTask(text, projectId, id);
+      setTasksPersist((tasks) => [...tasks, task]);
+      emit && eventsRef.current.emit("task-add", currentProject, task);
+    },
+    [currentProject]
+  );
 
   function editTask(taskId: string, text: string) {
     updateTask(taskId, () => ({ text }));
   }
 
-  function removeTask(taskId: string, emit: boolean = true) {
-    setTasksPersist((tasks) => tasks.filter((task) => task.id != taskId));
-    emit && eventsRef.current.emit("task-delete", taskId);
-  }
+  const removeTask = useCallback(
+    (taskId: string, emit: boolean = true) => {
+      setTasksPersist((tasks) => tasks.filter((task) => task.id != taskId));
+      emit && eventsRef.current.emit("task-delete", currentProject, taskId);
+    },
+    [currentProject]
+  );
 
   function toggleTaskCompleted(taskId: string) {
     updateTask(taskId, (task) => ({ completed: !task.completed }));
   }
 
-  function updateTask(
-    taskId: string,
-    updater: TaskUpdater,
-    emit: boolean = true
-  ) {
-    setTasksPersist((tasks) =>
-      tasks.map((task) => {
-        if (task.id == taskId) {
-          const updatedTask = {
-            ...task,
-            ...updater(task),
-          };
-          emit && eventsRef.current.emit("task-update", updatedTask);
-          return updatedTask;
-        } else {
-          return task;
-        }
-      })
-    );
-  }
+  const updateTask = useCallback(
+    (taskId: string, updater: TaskUpdater, emit: boolean = true) => {
+      setTasksPersist((tasks) =>
+        tasks.map((task) => {
+          if (task.id == taskId) {
+            const updatedTask = {
+              ...task,
+              ...updater(task),
+            };
+            emit &&
+              eventsRef.current.emit(
+                "task-update",
+                currentProject,
+                updatedTask
+              );
+            return updatedTask;
+          } else {
+            return task;
+          }
+        })
+      );
+    },
+    [currentProject]
+  );
 
   function addNewProject(projectName: string) {
     const project = createNewProject(projectName);
     addProject(project);
     setCurrentProjectId(project.id);
-    eventsRef.current.emit('project-selected', project)
+    eventsRef.current.emit("project-selected", project);
   }
 
   function addProject(project: Project) {
@@ -163,7 +177,7 @@ function useProjectsModel({ persist }: { persist: Persist }): ProjectsModel {
 
   function selectProject(project: Project) {
     setCurrentProjectId(project.id);
-    eventsRef.current.emit('project-selected', project);
+    eventsRef.current.emit("project-selected", project);
   }
 
   return {
@@ -180,7 +194,7 @@ function useProjectsModel({ persist }: { persist: Persist }): ProjectsModel {
     setProjectTopic,
     eventsRef,
     updateTask,
-    selectProject
+    selectProject,
   };
 }
 

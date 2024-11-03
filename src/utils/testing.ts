@@ -91,3 +91,13 @@ export function getTaskMock(
 ): Task {
   return { text, id, projectId, completed };
 }
+
+export async function joinTopic(topic: string) {
+  await userEvent.click(screen.getByText("Join project"));
+  await userEvent.type(screen.getByLabelText("Topic"), topic);
+  await userEvent.click(screen.getByText("Join topic"));
+}
+
+export function mockTopicHex(char: string) {
+  return char.repeat(64);
+}

@@ -43,14 +43,13 @@ export type SwarmMessage = {
 export interface SwarmModel {
   createTopic: CreateTopic;
   topic: string | null;
-  setTopic: (topic: string | null) => void;
   peerCount: number;
   joinTopic: (topic: string) => Promise<void>;
   isJoining: boolean;
-  sendAll: (data: SwarmMessage) => void;
-  send: (to: string, data: SwarmMessage) => void;
+  sendAll: (topic: string, data: SwarmMessage) => void;
+  send: (topic: string, to: string, data: SwarmMessage) => void;
   setPeerCount: (count: number) => void;
-  swarmRef: MutableRefObject<SwarmI>;
+  swarmsRef: MutableRefObject<Record<string, SwarmI>>
 }
 
 interface UseSwarmModelProps {
@@ -65,26 +64,31 @@ function useSwarmModel({
   const [topic, setTopic] = useState<string | null>(null);
   const [peerCount, setPeerCount] = useState(0);
   const [isJoining, setIsJoining] = useState(false);
-  const swarmRef = useRef(createSwarm());
+  const swarmsRef = useRef<Record<string, SwarmI>>({});
 
   async function joinTopic(topic: string) {
-    setIsJoining(true);
-    await swarmRef.current.join(topic);
-    setIsJoining(false);
+    if (!swarmsRef.current[topic]) {
+      const swarm = createSwarm();
+      swarmsRef.current[topic] = swarm;
+      setIsJoining(true);
+      await swarm.join(topic);
+      setIsJoining(false);
+    }
     setTopic(topic);
   }
 
-  function sendAll(data: SwarmMessage) {
-    swarmRef.current.sendAll(JSON.stringify(data));
+  function sendAll(topic: string, data: SwarmMessage) {
+    const swarm = swarmsRef.current[topic];
+    swarm && swarm.sendAll(JSON.stringify(data));
   }
 
-  function send(to: string, data: SwarmMessage) {
-    swarmRef.current.send(to, JSON.stringify(data));
+  function send(topic: string, to: string, data: SwarmMessage) {
+    const swarm = swarmsRef.current[topic];
+    swarm && swarm.send(to, JSON.stringify(data));
   }
 
   return {
     topic,
-    setTopic,
     createTopic,
     peerCount,
     joinTopic,
@@ -92,6 +96,6 @@ function useSwarmModel({
     sendAll,
     send,
     setPeerCount,
-    swarmRef,
+    swarmsRef
   };
 }

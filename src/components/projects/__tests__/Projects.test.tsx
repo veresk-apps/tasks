@@ -6,6 +6,8 @@ import {
   addProjects,
   addTasks,
   hasClass,
+  joinTopic,
+  mockTopicHex,
   PersistMock,
   SwarmMock,
 } from "../../../utils/testing";
@@ -240,14 +242,14 @@ describe("Projects", () => {
       screen.getByText("Share project");
     });
     it("should dispaly topic after clicking Share project button", async () => {
-      const topic = "a".repeat(64);
+      const topic = mockTopicHex("a");
       renderProjects({ createTopic: () => topic });
       await addProjects(["Veresk"]);
       await userEvent.click(screen.getByText("Share project"));
       await screen.findByText(topic);
     });
     it("should not show display button if project is already shared", async () => {
-      const topic = "a".repeat(64);
+      const topic = mockTopicHex("a");
       const persist = new PersistMock({
         projects: JSON.stringify([{ ...createNewProject("Veresk"), topic }]),
       });
@@ -257,7 +259,7 @@ describe("Projects", () => {
       ).resolves.toBe("not found");
     });
     it("should show topic if project is already shared", async () => {
-      const topic = "a".repeat(64);
+      const topic = mockTopicHex("a");
       const project = { ...createNewProject("Veresk"), topic };
       const persist = new PersistMock({
         projects: JSON.stringify([project]),
@@ -266,7 +268,7 @@ describe("Projects", () => {
       await screen.findByText(topic);
     });
     it("should join topic automatically if the project is already shared", async () => {
-      const topic = "a".repeat(64);
+      const topic = mockTopicHex("a");
       const project = { ...createNewProject("Veresk"), topic };
       const persist = new PersistMock({
         projects: JSON.stringify([project]),
@@ -277,7 +279,7 @@ describe("Projects", () => {
       expect(swarm.join).toHaveBeenCalled();
     });
     it("should assign swarm topic to a project", async () => {
-      const topic = "a".repeat(64);
+      const topic = mockTopicHex("a");
       const persist = new PersistMock();
       renderProjects({ persist, createTopic: () => topic });
       await addProjects(["Veresk"]);
@@ -301,19 +303,16 @@ describe("Projects", () => {
       const swarm = new SwarmMock();
       renderProjects({ createSwarm: () => swarm });
       await userEvent.click(screen.getByText("Join project"));
-      const topic = "a".repeat(64);
+      const topic = mockTopicHex("a");
       await userEvent.keyboard(`${topic}{Enter}`);
       expect(swarm.join).toHaveBeenCalledWith(topic);
     });
     it("should close form after submit and clear the form", async () => {
       renderProjects();
-      await userEvent.click(screen.getByText("Join project"));
-      const topic = "a".repeat(64);
+      const topic = mockTopicHex("a");
+      await joinTopic(topic);
 
-      await userEvent.type(screen.getByLabelText("Topic"), topic);
-      await userEvent.click(screen.getByText("Join topic"));
       expect(screen.queryByText("Topic")).toBeNull();
-
       await userEvent.click(screen.getByText("Join project"));
       const input: HTMLInputElement = screen.getByLabelText("Topic");
       expect(input.value).toBe("");
@@ -358,8 +357,9 @@ describe("Projects", () => {
     it("should display shared project in the list", async () => {
       const swarm = new SwarmMock();
       renderProjects({ createSwarm: () => swarm });
-
-      const project = getProjectMock("Alian", "projid", "topic");
+      const topic = mockTopicHex("a");
+      await joinTopic(topic);
+      const project = getProjectMock("Alian", "projid", topic);
 
       act(() => {
         swarm.simulatePeerData(
@@ -378,8 +378,10 @@ describe("Projects", () => {
     it("should display tasks from shared project list", async () => {
       const swarm = new SwarmMock();
       renderProjects({ createSwarm: () => swarm });
+      const topic = mockTopicHex("a");
+      await joinTopic(topic);
 
-      const project = getProjectMock("Alian", "projid", "topic");
+      const project = getProjectMock("Alian", "projid", topic);
       const tasks = [getTaskMock("alian task 1", "taskid", "projid")];
 
       act(() => {

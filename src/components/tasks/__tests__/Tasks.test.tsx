@@ -6,6 +6,8 @@ import {
   addTasks,
   getProjectMock,
   getTaskMock,
+  joinTopic,
+  mockTopicHex,
   PersistMock,
   SwarmMock,
 } from "../../../utils/testing";
@@ -192,8 +194,10 @@ describe("Tasks", () => {
     it("should send edit event to the host", async () => {
       const swarm = new SwarmMock();
       await renderTasksAndSetup({ swarm });
+      const topic = mockTopicHex("a");
+      await joinTopic(topic);
 
-      const project = getProjectMock("Alian", "projid", "topic");
+      const project = getProjectMock("Alian", "projid", topic);
       const tasks = [getTaskMock("alian task 1", "taskid", "projid")];
       addSharedProject(swarm, project, tasks);
 
@@ -209,6 +213,8 @@ describe("Tasks", () => {
     it("should receive edit event and update the task text", async () => {
       const swarm = new SwarmMock();
       await renderTasksAndSetup({ swarm });
+      const topic = mockTopicHex("a");
+      await joinTopic(topic);
 
       jest.spyOn(global.Math, "random").mockReturnValue(0.2);
       await addTasks(["task before"]);
@@ -229,6 +235,8 @@ describe("Tasks", () => {
     it("should receive edit event and update the task completion state", async () => {
       const swarm = new SwarmMock();
       await renderTasksAndSetup({ swarm });
+      const topic = mockTopicHex("a");
+      await joinTopic(topic);
 
       jest.spyOn(global.Math, "random").mockReturnValue(0.2);
       await addTasks(["task 1"]);
@@ -251,8 +259,10 @@ describe("Tasks", () => {
     it("should send remove event", async () => {
       const swarm = new SwarmMock();
       await renderTasksAndSetup({ swarm });
+      const topic = mockTopicHex("a");
+      await joinTopic(topic);
 
-      const project = getProjectMock("Alian", "projid", "topic");
+      const project = getProjectMock("Alian", "projid", topic);
       const tasks = [getTaskMock("alian task 1", "taskid", "projid")];
       addSharedProject(swarm, project, tasks);
 
@@ -269,6 +279,8 @@ describe("Tasks", () => {
     it("should receive edit event and update the task text", async () => {
       const swarm = new SwarmMock();
       await renderTasksAndSetup({ swarm });
+      const topic = mockTopicHex("a");
+      await joinTopic(topic);
 
       jest.spyOn(global.Math, "random").mockReturnValue(0.2);
       await addTasks(["task 1"]);
@@ -289,13 +301,15 @@ describe("Tasks", () => {
     it("should send add task event", async () => {
       const swarm = new SwarmMock();
       await renderTasksAndSetup({ swarm });
+      const topic = mockTopicHex("a");
+      await joinTopic(topic);
 
-      const project = getProjectMock("Alian", "projid", "topic");
+      const project = getProjectMock("Alian", "projid", topic);
       const tasks = [getTaskMock("alian task 1", "taskid", "projid")];
       addSharedProject(swarm, project, tasks);
 
       jest.spyOn(global.Math, "random").mockReturnValue(0.2);
-      await addTasks(['alian task 2']);
+      await addTasks(["alian task 2"]);
 
       expect(swarm.sendAll).toHaveBeenCalledWith(
         JSON.stringify({
@@ -309,6 +323,8 @@ describe("Tasks", () => {
       const swarm = new SwarmMock();
       jest.spyOn(global.Math, "random").mockReturnValue(0.999);
       await renderTasksAndSetup({ swarm });
+      const topic = mockTopicHex("a");
+      await joinTopic(topic);
 
       jest.spyOn(global.Math, "random").mockReturnValue(0.1);
       await addTasks(["task 1"]);
@@ -325,6 +341,5 @@ describe("Tasks", () => {
 
       await screen.findByText("alian task 2");
     });
-
   });
 });
