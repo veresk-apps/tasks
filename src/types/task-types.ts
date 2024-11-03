@@ -4,5 +4,6 @@ export interface Task {
   completed: boolean;
   id: string;
   projectId: string;
+  owner: "me" | "other" | string
 }
 

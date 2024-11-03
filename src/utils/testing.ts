@@ -78,18 +78,20 @@ export class SwarmMock implements Swarm {
 export function getProjectMock(
   name: string,
   id: string,
-  topic: null | string
+  topic: null | string,
+  owner = "me"
 ): Project {
-  return { name, id, topic };
+  return { name, id, topic, owner };
 }
 
 export function getTaskMock(
   text: string,
   id: string,
   projectId: string,
-  completed: boolean = false
+  completed: boolean = false,
+  owner = 'me'
 ): Task {
-  return { text, id, projectId, completed };
+  return { text, id, projectId, completed, owner };
 }
 
 export async function joinTopic(topic: string) {

@@ -80,11 +80,19 @@ function useProjectsModel({ persist }: { persist: Persist }): ProjectsModel {
 
   const addTask = useCallback(
     (
-      { text, projectId, id }: { text: string; projectId: string; id?: string },
+      {
+        text,
+        projectId,
+        id,
+      }: { text: string; projectId: string; id?: string;},
       emit = true
     ) => {
-      const task = createNewTask(text, projectId, id);
-      setTasksPersist((tasks) => [...tasks, task]);
+      const task = createNewTask({ text, projectId, id });
+      currentProject &&
+        setTasksPersist((tasks) => [
+          ...tasks,
+          { ...task, owner: currentProject.owner },
+        ]);
       emit && eventsRef.current.emit("task-add", currentProject, task);
     },
     [currentProject]
@@ -232,26 +240,42 @@ function usePersistance({
     setProjectsPersist: (updater: (projects: Project[]) => Project[]) => {
       setProjects((projects) => {
         const updated = updater(projects);
-        persist.set("projects", JSON.stringify(updated)).catch(console.error);
+        persist
+          .set(
+            "projects",
+            JSON.stringify(updated.filter(({ owner }) => owner == "me"))
+          )
+          .catch(console.error);
         return updated;
       });
     },
     setTasksPersist: (updater: (tasks: Task[]) => Task[]) => {
       setTasks((tasks) => {
         const updated = updater(tasks);
-        persist.set("tasks", JSON.stringify(updated)).catch(console.error);
+        persist
+          .set(
+            "tasks",
+            JSON.stringify(updated.filter(({ owner }) => owner == "me"))
+          )
+          .catch(console.error);
         return updated;
       });
     },
   };
 }
 
-export function createNewTask(
-  text: string,
-  projectId: string,
-  id = randomStringOfNumbers()
-): Task {
-  return { text, id, projectId, completed: false };
+export function createNewTask({
+  text,
+  projectId,
+  id = randomStringOfNumbers(),
+  owner = "me",
+}: {
+  text: string;
+  projectId: string;
+  id?: string;
+  owner?: string;
+}): Task {
+  return { text, id, projectId, completed: false, owner };
 }
 
 export function createNewProject(name: string): Project {
@@ -259,7 +283,7 @@ export function createNewProject(name: string): Project {
     name,
     id: randomStringOfNumbers(),
     topic: null,
-    owner: "me"
+    owner: "me",
   };
 }
 

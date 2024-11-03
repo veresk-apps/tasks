@@ -197,8 +197,8 @@ describe("Projects", () => {
       const persist = new PersistMock({
         projects: JSON.stringify([project]),
         tasks: JSON.stringify([
-          createNewTask("task 1", project.id),
-          createNewTask("task 2", project.id),
+          createNewTask({ text: "task 1", projectId: project.id }),
+          createNewTask({ text: "task 2", projectId: project.id }),
         ]),
       });
       renderProjects({ persist });
@@ -232,6 +232,22 @@ describe("Projects", () => {
       const persistedProjects = JSON.parse(await persist.get("projects"));
       expect(persistedProjects[0].name).toEqual("Candy");
       expect(persistedProjects[1].name).toEqual("Veresk");
+    });
+
+    it("should not persist alian projects", async () => {
+      const persist = new PersistMock();
+      const swarm = new SwarmMock();
+      renderProjects({ persist, createSwarm: () => swarm });
+
+      const project = getProjectMock("Alian", "projid", mockTopicHex("a"));
+      const tasks = [getTaskMock("alian task 1", "taskid", "projid")];
+      await addSharedProject(project, tasks, swarm);
+      await addTasks(["my ephemeral task"]);
+
+      const persistedProjects = await persist.getParsed("projects", []);
+      const persistedTasks = await persist.getParsed("tasks", []);
+      expect(persistedProjects).toHaveLength(0);
+      expect(persistedTasks).toHaveLength(0);
     });
   });
 
@@ -334,7 +350,7 @@ describe("Projects", () => {
 
       jest.spyOn(global.Math, "random").mockReturnValue(0.2);
       await addTasks(["task 1"]);
-      const tasks = [createNewTask("task 1", "1")];
+      const tasks = [createNewTask({ text: "task 1", projectId: "1" })];
 
       await userEvent.click(screen.getByText("Share project"));
       const peer = { pubKey: "abc" };
@@ -403,7 +419,13 @@ describe("Projects", () => {
         (child) => child.textContent
       );
 
-      expect(renderedTabs).toEqual(["Own 1", "Own 2", "---", "Alian 1", "Alian 2"]);
+      expect(renderedTabs).toEqual([
+        "Own 1",
+        "Own 2",
+        "---",
+        "Alian 1",
+        "Alian 2",
+      ]);
     });
   });
 });
